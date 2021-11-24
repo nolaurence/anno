@@ -1,9 +1,8 @@
 package cn.nolaurence.anno.utils;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -11,6 +10,11 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Date;
 
+/**
+ * @Description: Jwt工具类 copy-paste from Naccl's NBlog.
+ * @Author: nolaurence
+ * @Date: 2021-11-24 22:59:27
+ */
 @Component
 public class JwtUtil {
     private static long expireTime;
@@ -43,12 +47,11 @@ public class JwtUtil {
      * @return jwt
      */
     public static String generateToken(String subject) {
-        String jwt = Jwts.builder()
+        return Jwts.builder()
                 .setSubject(subject)
                 .setExpiration(new Date(System.currentTimeMillis() + expireTime))
                 .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
-        return jwt;
     }
 
     /**
@@ -62,13 +65,38 @@ public class JwtUtil {
         for (GrantedAuthority authority : authorities) {
             stringBuilder.append(authority.getAuthority()).append(",");
         }
-        Jwts.builder()
+        return Jwts.builder()
                 .setSubject(subject)
                 .claim("authorities", stringBuilder)
                 .setExpiration(new Date(System.currentTimeMillis() + expireTime))
                 .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
-        Jwts.builder().setClaims()
-                .sign
+    }
+
+    /**
+     * 生成自定义过期时间token
+     *
+     * @param subject String
+     * @param expireTime long
+     * @return String
+     */
+    public static String generateToken(String subject, long expireTime) {
+        return Jwts.builder()
+                .setSubject(subject)
+                .setExpiration(new Date(System.currentTimeMillis() + expireTime))
+                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .compact();
+    }
+
+    /**
+     * 获取tokenBody同时校验token是否有效（无效则会抛出异常）
+     * @param token String
+     * @return io.jsonwebtoken.Claims
+     */
+    public static Claims getTokenBody(String token) {
+        return Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token.replace("Bearer", ""))
+                .getBody();
     }
 }

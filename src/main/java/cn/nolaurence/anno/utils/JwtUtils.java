@@ -16,7 +16,7 @@ import java.util.Date;
  * @Date: 2021-11-24 22:59:27
  */
 @Component
-public class JwtUtil {
+public class JwtUtils {
     private static long expireTime;
     private static String secretKey;
 
